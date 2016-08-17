@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 	vr::IVRSystem* hmd = vr::VR_Init(&error, vr::VRApplication_Background);
 	if (error != vr::VRInitError_None) {
 		hmd = NULL;
-		std::cerr << "ERROR while initializing" << std::endl;
+		std::cerr << "ERROR while initializing openVR" << std::endl;
 		return 0;
 	}
 

@@ -9,14 +9,14 @@
 
 struct Vec3 {
 	Vec3(vr::HmdMatrix34_t const& mat) {
-		data.assign(mat.m[0][3]);
-		data.assign(mat.m[1][3]);
-		data.assign(mat.m[2][3]);
+		data.at(0) = mat.m[0][3];
+		data.at(1) = mat.m[1][3];
+		data.at(2) = mat.m[2][3];
 	}
 	Vec3(CameraSpacePoint const& mat) {
-		data.assign(mat.X);
-		data.assign(mat.Y);
-		data.assign(mat.Z);
+		data.at(0) = mat.X;
+		data.at(1) = mat.Y;
+		data.at(2) = mat.Z;
 	}
 	bool containsZero() {
 		if (data[0] == 0.0)
@@ -27,6 +27,7 @@ struct Vec3 {
 			return 1;
 		return 0;
 	}
+
 	friend std::ostream& operator<< (std::ostream& stream, const Vec3& vec) {
 		std::cout.precision(5);
 		return stream << std::fixed << vec.data[0] << ", " << vec.data[1] << ", " << vec.data[2];
@@ -72,7 +73,41 @@ struct Samples {
 	}
 
 	std::vector<std::pair<Vec3, Vec3>> data;
-	int length = 0;
+	unsigned length = 0;
+};
+
+struct Mat4 {
+	Mat4() {
+		make_identity();
+	}
+	Mat4(Vec3 const& vec) {
+		make_identity();
+		data.at(12) = vec.data.at(0);
+		data.at(13) = vec.data.at(1);
+		data.at(14) = vec.data.at(2);
+	}
+	void print() {
+		std::cout.precision(5);
+		std::cout << data.at(0) << " " << data.at(4) << " " << data.at(8) << " " << data.at(12) << std::endl;
+		std::cout << data.at(1) << " " << data.at(5) << " " << data.at(9) << " " << data.at(13) << std::endl;
+		std::cout << data.at(2) << " " << data.at(6) << " " << data.at(10) << " " << data.at(14) << std::endl;
+		std::cout << data.at(3) << " " << data.at(7) << " " << data.at(11) << " " << data.at(15) << std::endl;
+	}
+	void make_identity() {
+		data.fill(0.0);
+		data.at(0) = 1.0;
+		data.at(5) = 1.0;
+		data.at(10) = 1.0;
+		data.at(15) = 1.0;
+	}
+	friend Mat4 operator*(Mat4 const& a, Mat4 const& b) {
+		// TODO matrix multiplication
+		Mat4 result;
+		result.data.at(0) = 42.42;
+		return result;
+	}
+
+	std::array<float, 16> data;
 };
 
 #endif
