@@ -6,17 +6,29 @@
 #include <vector>
 #include <array>
 #include <utility>
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtx/string_cast.hpp>
+#include <gtx/matrix_decompose.hpp>
+
+struct Mat4;
+struct Vec3;
+struct Samples;
+
 
 struct Vec3 {
 	Vec3(vr::HmdMatrix34_t const& mat) {
-		data.at(0) = mat.m[0][3];
-		data.at(1) = mat.m[1][3];
-		data.at(2) = mat.m[2][3];
+		data[0] = mat.m[0][3];
+		data[1] = mat.m[1][3];
+		data[2] = mat.m[2][3];
 	}
 	Vec3(CameraSpacePoint const& mat) {
-		data.at(0) = mat.X;
-		data.at(1) = mat.Y;
-		data.at(2) = mat.Z;
+		data[0] = mat.X;
+		data[1] = mat.Y;
+		data[2] = mat.Z;
+	}
+	Vec3(glm::vec3 const& vec) {
+		data = vec;
 	}
 	bool containsZero() {
 		if (data[0] == 0.0)
@@ -42,7 +54,32 @@ struct Vec3 {
 		return 1;
 	}
 
-	std::array<float, 3> data;
+	glm::vec3 data;
+};
+
+struct Mat4 {
+	Mat4() {}
+	Mat4(glm::mat4 const& mat) {
+		data = mat;
+	}
+	Mat4(Vec3 const& vec) {
+		data = glm::translate(data, vec.data);
+	}
+	void translate(Vec3 const& vec) {
+		data = glm::translate(data, vec.data);
+	}
+	void print() {
+		std::cout.precision(5);
+		std::cout << data[0][0] << " " << data[1][0] << " " << data[2][0] << " " << data[3][0] << std::endl;
+		std::cout << data[0][1] << " " << data[1][1] << " " << data[2][1] << " " << data[3][1] << std::endl;
+		std::cout << data[0][2] << " " << data[1][2] << " " << data[2][2] << " " << data[3][2] << std::endl;
+		std::cout << data[0][3] << " " << data[1][3] << " " << data[2][3] << " " << data[3][3] << std::endl;
+	}
+	friend Mat4 operator*(Mat4 const& a, Mat4 const& b) {
+		return a.data*b.data;
+	}
+
+	glm::mat4 data;
 };
 
 struct Samples {
@@ -71,43 +108,19 @@ struct Samples {
 		// TODO check if pairs contain same values and delete them
 		return 1;
 	}
+	Mat4 calibrate() {
+		Mat4 openvr;
+		Mat4 kinect;
+		glm::vec3 openvr_to_null = -data[0].first.data;
+		glm::vec3 kinect_to_null = -data[0].second.data;
+		kinect.print();
+		std::cout << std::endl;
+		openvr.print();
+		return Mat4{};
+	}
 
 	std::vector<std::pair<Vec3, Vec3>> data;
 	unsigned length = 0;
-};
-
-struct Mat4 {
-	Mat4() {
-		make_identity();
-	}
-	Mat4(Vec3 const& vec) {
-		make_identity();
-		data.at(12) = vec.data.at(0);
-		data.at(13) = vec.data.at(1);
-		data.at(14) = vec.data.at(2);
-	}
-	void print() {
-		std::cout.precision(5);
-		std::cout << data.at(0) << " " << data.at(4) << " " << data.at(8) << " " << data.at(12) << std::endl;
-		std::cout << data.at(1) << " " << data.at(5) << " " << data.at(9) << " " << data.at(13) << std::endl;
-		std::cout << data.at(2) << " " << data.at(6) << " " << data.at(10) << " " << data.at(14) << std::endl;
-		std::cout << data.at(3) << " " << data.at(7) << " " << data.at(11) << " " << data.at(15) << std::endl;
-	}
-	void make_identity() {
-		data.fill(0.0);
-		data.at(0) = 1.0;
-		data.at(5) = 1.0;
-		data.at(10) = 1.0;
-		data.at(15) = 1.0;
-	}
-	friend Mat4 operator*(Mat4 const& a, Mat4 const& b) {
-		// TODO matrix multiplication
-		Mat4 result;
-		result.data.at(0) = 42.42;
-		return result;
-	}
-
-	std::array<float, 16> data;
 };
 
 #endif

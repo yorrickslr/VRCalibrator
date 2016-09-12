@@ -134,5 +134,8 @@ exit:
 	std::cin.get();
 	sensor->Close();
 	vr::VR_Shutdown();
+	
+	samples.calibrate();
+
 	return 0;
 }
