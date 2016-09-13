@@ -17,6 +17,7 @@ struct Samples;
 
 
 struct Vec3 {
+	Vec3() {}
 	Vec3(vr::HmdMatrix34_t const& mat) {
 		data[0] = mat.m[0][3];
 		data[1] = mat.m[1][3];
@@ -52,6 +53,15 @@ struct Vec3 {
 		if (data[2] != vec.data[2])
 			return 0;
 		return 1;
+	}
+	friend Vec3 operator- (Vec3 const& a, Vec3 const& b) {
+		return a.data - b.data;
+	}
+	friend Vec3 operator+  (Vec3 const& a, Vec3 const& b) {
+		return a.data + b.data;
+	}
+	friend Vec3 operator*(Vec3 const& a, Vec3 const& b) {
+		return a.data * b.data;
 	}
 
 	glm::vec3 data;
@@ -109,13 +119,37 @@ struct Samples {
 		return 1;
 	}
 	Mat4 calibrate() {
-		Mat4 openvr;
-		Mat4 kinect;
-		glm::vec3 openvr_to_null = -data[0].first.data;
-		glm::vec3 kinect_to_null = -data[0].second.data;
-		kinect.print();
-		std::cout << std::endl;
-		openvr.print();
+		Mat4 calibration, temp;
+
+		Vec3 openvr_a = data[0].first;
+		Vec3 openvr_b = data[1].first;
+		Vec3 kinect_a = data[0].second;
+		Vec3 kinect_b = data[1].second;
+		Vec3 kinect_to_openvr = openvr_a - kinect_a;
+		kinect_a = kinect_a + kinect_to_openvr;
+		kinect_b = kinect_b + kinect_to_openvr;
+		calibration.translate(kinect_to_openvr);
+
+		// DEBUG
+		std::string message;
+		std::cout << "kinect_to_openvr = " << kinect_to_openvr << std::endl;
+		if (kinect_a == openvr_a) {
+			message = "\t ~~~ success ~~~";
+		}
+		else {
+			message = "\t ~~~ failure ~~~";
+		}
+		std::cout << "kinect_a to openvr: " << kinect_a << message << std::endl;
+		if (kinect_b == openvr_b) {
+			message = "\t ~~~ success ~~~";
+		}
+		else {
+			message = "\t ~~~ failure ~~~";
+		}
+		std::cout << "kinect_b to openvr: " << kinect_b << message << std::endl;
+		calibration.print();
+
+
 		return Mat4{};
 	}
 

@@ -130,10 +130,12 @@ exit:
 	for (std::pair<Vec3, Vec3> point : samples.data) {
 		std::cout << point.first << "\t\t" << point.second << std::endl;
 	}
-	std::cout << "\nPress enter to exit..." << std::endl;
-	std::cin.get();
+	
 	sensor->Close();
 	vr::VR_Shutdown();
+
+	std::cout << "\nPress enter to calibrate..." << std::endl;
+	std::cin.get();
 	
 	samples.calibrate();
 
