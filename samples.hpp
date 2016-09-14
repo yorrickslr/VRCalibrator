@@ -158,8 +158,6 @@ struct Samples {
 		// step 4
 		calibration.translate(-to_null);
 
-		calibration.print();
-
 		return calibration;
 	}
 
