@@ -10,6 +10,7 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtx/string_cast.hpp>
 #include <gtx/matrix_decompose.hpp>
+#include <gtx/vector_angle.hpp>
 
 struct Mat4;
 struct Vec3;
@@ -63,6 +64,12 @@ struct Vec3 {
 	friend Vec3 operator*(Vec3 const& a, Vec3 const& b) {
 		return a.data * b.data;
 	}
+	void operator+=(Vec3 const& vec) {
+		data += vec.data;
+	}
+	Vec3 operator-() {
+		return -data;
+	}
 
 	glm::vec3 data;
 };
@@ -77,6 +84,9 @@ struct Mat4 {
 	}
 	void translate(Vec3 const& vec) {
 		data = glm::translate(data, vec.data);
+	}
+	void rotate(float const& deg, Vec3 const& vec) {
+		data = glm::rotate(data, deg, vec.data);
 	}
 	void print() {
 		std::cout.precision(5);
@@ -119,38 +129,38 @@ struct Samples {
 		return 1;
 	}
 	Mat4 calibrate() {
-		Mat4 calibration, temp;
+		Mat4 calibration;
 
 		Vec3 openvr_a = data[0].first;
 		Vec3 openvr_b = data[1].first;
 		Vec3 kinect_a = data[0].second;
 		Vec3 kinect_b = data[1].second;
+
+		// step 1
 		Vec3 kinect_to_openvr = openvr_a - kinect_a;
 		kinect_a = kinect_a + kinect_to_openvr;
 		kinect_b = kinect_b + kinect_to_openvr;
 		calibration.translate(kinect_to_openvr);
 
-		// DEBUG
-		std::string message;
-		std::cout << "kinect_to_openvr = " << kinect_to_openvr << std::endl;
-		if (kinect_a == openvr_a) {
-			message = "\t ~~~ success ~~~";
-		}
-		else {
-			message = "\t ~~~ failure ~~~";
-		}
-		std::cout << "kinect_a to openvr: " << kinect_a << message << std::endl;
-		if (kinect_b == openvr_b) {
-			message = "\t ~~~ success ~~~";
-		}
-		else {
-			message = "\t ~~~ failure ~~~";
-		}
-		std::cout << "kinect_b to openvr: " << kinect_b << message << std::endl;
+		// step 2
+		Vec3 to_null = -openvr_a;
+		openvr_a += to_null;
+		openvr_b += to_null;
+		kinect_a += to_null;
+		kinect_b += to_null;
+		calibration.translate(to_null);
+
+		// step 3
+		Vec3 rotation_axis = glm::cross(glm::normalize(openvr_b.data), glm::normalize(kinect_b.data));
+		float deg = glm::angle(glm::normalize(openvr_b.data), glm::normalize(kinect_b.data));
+		calibration.rotate(deg, rotation_axis.data);
+
+		// step 4
+		calibration.translate(-to_null);
+
 		calibration.print();
 
-
-		return Mat4{};
+		return calibration;
 	}
 
 	std::vector<std::pair<Vec3, Vec3>> data;
