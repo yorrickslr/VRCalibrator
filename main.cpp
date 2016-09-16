@@ -5,6 +5,7 @@ pos.m[2][3]		Z	to left from screen
 */
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <array>
 
@@ -137,7 +138,12 @@ exit:
 	std::cout << "\nPress enter to calibrate..." << std::endl;
 	std::cin.get();
 	
-	samples.calibrate();
+	Mat4 calibration = samples.calibrate();
+
+	std::ofstream file;
+	file.open("calibration.txt");
+	file << calibration;
+	file.close();
 
 	return 0;
 }

@@ -88,12 +88,12 @@ struct Mat4 {
 	void rotate(float const& deg, Vec3 const& vec) {
 		data = glm::rotate(data, deg, vec.data);
 	}
-	void print() {
-		std::cout.precision(5);
-		std::cout << data[0][0] << " " << data[1][0] << " " << data[2][0] << " " << data[3][0] << std::endl;
-		std::cout << data[0][1] << " " << data[1][1] << " " << data[2][1] << " " << data[3][1] << std::endl;
-		std::cout << data[0][2] << " " << data[1][2] << " " << data[2][2] << " " << data[3][2] << std::endl;
-		std::cout << data[0][3] << " " << data[1][3] << " " << data[2][3] << " " << data[3][3] << std::endl;
+	friend std::ostream& operator<< (std::ostream& stream, Mat4 const& mat) {
+		stream << mat.data[0][0] << " " << mat.data[1][0] << " " << mat.data[2][0] << " " << mat.data[3][0] << std::endl;
+		stream << mat.data[0][1] << " " << mat.data[1][1] << " " << mat.data[2][1] << " " << mat.data[3][1] << std::endl;
+		stream << mat.data[0][2] << " " << mat.data[1][2] << " " << mat.data[2][2] << " " << mat.data[3][2] << std::endl;
+		stream << mat.data[0][3] << " " << mat.data[1][3] << " " << mat.data[2][3] << " " << mat.data[3][3] << std::endl;
+		return stream;
 	}
 	friend Mat4 operator*(Mat4 const& a, Mat4 const& b) {
 		return a.data*b.data;
