@@ -11,6 +11,7 @@
 #include <gtx/string_cast.hpp>
 #include <gtx/matrix_decompose.hpp>
 #include <gtx/vector_angle.hpp>
+#include <armadillo>
 
 struct Mat4;
 struct Vec3;
@@ -152,13 +153,55 @@ struct Samples {
 
 		// step 3
 		Vec3 rotation_axis = glm::cross(glm::normalize(openvr_b.data), glm::normalize(kinect_b.data));
+		std::cout << "rotation axis: " << rotation_axis << std::endl;
 		float deg = glm::angle(glm::normalize(openvr_b.data), glm::normalize(kinect_b.data));
+		std::cout << "rotation degree: " << deg << std::endl;
 		calibration.rotate(deg, rotation_axis.data);
 
 		// step 4
 		calibration.translate(-to_null);
 
 		return calibration;
+	}
+
+	Mat4 calibrate2() {
+		glm::vec3 openvr_centroid;
+		glm::vec3 kinect_centroid;
+		for (auto i : data) {
+			openvr_centroid[0] += i.first.data[0];
+			openvr_centroid[1] += i.first.data[1];
+			openvr_centroid[2] += i.first.data[2];
+			kinect_centroid[0] += i.second.data[0];
+			kinect_centroid[1] += i.second.data[1];
+			kinect_centroid[2] += i.second.data[2];
+		}
+		openvr_centroid[0] /= length;
+		openvr_centroid[1] /= length;
+		openvr_centroid[2] /= length;
+		kinect_centroid[0] /= length;
+		kinect_centroid[1] /= length;
+		kinect_centroid[2] /= length;
+		std::cout << Vec3(openvr_centroid) << std::endl;
+		std::cout << Vec3(kinect_centroid) << std::endl;
+
+		std::vector<glm::vec3> openvr_centered;
+		std::vector<glm::vec3> kinect_centered;
+		for (auto i : data) {
+			openvr_centered.push_back(i.first.data - openvr_centroid);
+			kinect_centered.push_back(i.first.data - kinect_centroid);
+		}
+		
+		std::vector<float> openvr_transposed;
+		
+		arma::fmat M;
+		arma::fmat U;
+		arma::fvec S;
+		arma::fmat V;
+		arma::svd(U, S, V, M);
+
+		arma::fmat test(3,3);
+
+		return Mat4();
 	}
 
 	std::vector<std::pair<Vec3, Vec3>> data;

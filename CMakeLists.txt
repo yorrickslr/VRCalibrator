@@ -6,6 +6,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/externals/openvr/headers")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/externals/kinect/v2.0_1409/inc")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/externals/glm")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/externals/armadillo")
 
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/externals/openvr/lib/win64")
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/externals/Kinect/v2.0_1409/Lib/x64")

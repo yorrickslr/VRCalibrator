@@ -138,12 +138,54 @@ exit:
 	std::cout << "\nPress enter to calibrate..." << std::endl;
 	std::cin.get();
 	
-	Mat4 calibration = samples.calibrate();
-
+	Mat4 calibration = samples.calibrate2();
+	/*
 	std::ofstream file;
 	file.open("calibration.txt");
 	file << calibration;
 	file.close();
 
+	Mat4 openvr;
+	Mat4 kinect;
+	openvr.translate(samples.data[0].first.data);
+	kinect.translate(samples.data[0].second.data);
+
+	std::cout << openvr << std::endl;
+	std::cout << kinect << std::endl;
+
+	kinect = kinect * calibration;
+	std::cout << std::endl;
+	std::cout << kinect << std::endl;
+
+	std::cout << std::endl;
+	std::cout << std::endl;
+
+	openvr = Mat4();
+	kinect = Mat4();
+	openvr.translate(samples.data[1].first.data);
+	kinect.translate(samples.data[1].second.data);
+
+	std::cout << openvr << std::endl;
+	std::cout << kinect << std::endl;
+
+	kinect = kinect * calibration;
+	std::cout << std::endl;
+	std::cout << kinect << std::endl;
+
+	std::cout << std::endl;
+	std::cout << std::endl;
+
+	openvr = Mat4();
+	kinect = Mat4();
+	openvr.translate(samples.data[2].first.data);
+	kinect.translate(samples.data[2].second.data);
+
+	std::cout << openvr << std::endl;
+	std::cout << kinect << std::endl;
+
+	kinect = kinect * calibration;
+	std::cout << std::endl;
+	std::cout << kinect << std::endl;
+	*/
 	return 0;
 }
