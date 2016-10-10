@@ -25,6 +25,11 @@ struct Vec3 {
 		data[1] = mat.m[1][3];
 		data[2] = mat.m[2][3];
 	}
+	Vec3(arma::vec3 const& vec) {
+		data[0] = vec.at(0);
+		data[1] = vec.at(1);
+		data[2] = vec.at(2);
+	}
 	Vec3(CameraSpacePoint const& mat) {
 		data[0] = mat.X;
 		data[1] = mat.Y;
@@ -85,6 +90,18 @@ struct Mat4 {
 	}
 	void translate(Vec3 const& vec) {
 		data = glm::translate(data, vec.data);
+	}
+	void set_translation(arma::vec3 const& vec) {
+		data[3][0] = vec.at(0);
+		data[3][1] = vec.at(1);
+		data[3][2] = vec.at(2);
+	}
+	void set_rotation(arma::fmat const& mat) {
+		for (int i = 0; i < 3; i++) {
+			for (int k = 0; k < 3; k++) {
+				data[k][i] = mat.at(i, k);
+			}
+		}
 	}
 	void rotate(float const& deg, Vec3 const& vec) {
 		data = glm::rotate(data, deg, vec.data);
@@ -165,8 +182,9 @@ struct Samples {
 	}
 
 	Mat4 calibrate2() {
-		glm::vec3 openvr_centroid;
-		glm::vec3 kinect_centroid;
+		arma::vec3 openvr_centroid;
+		arma::vec3 kinect_centroid;
+
 		for (auto i : data) {
 			openvr_centroid[0] += i.first.data[0];
 			openvr_centroid[1] += i.first.data[1];
@@ -181,27 +199,69 @@ struct Samples {
 		kinect_centroid[0] /= length;
 		kinect_centroid[1] /= length;
 		kinect_centroid[2] /= length;
-		std::cout << Vec3(openvr_centroid) << std::endl;
-		std::cout << Vec3(kinect_centroid) << std::endl;
 
-		std::vector<glm::vec3> openvr_centered;
-		std::vector<glm::vec3> kinect_centered;
-		for (auto i : data) {
-			openvr_centered.push_back(i.first.data - openvr_centroid);
-			kinect_centered.push_back(i.first.data - kinect_centroid);
+		std::cout << "OpenVR centroid:" << std::endl;
+		std::cout << openvr_centroid << std::endl;
+
+		std::cout << "Kinect centroid:" << std::endl;
+		std::cout << kinect_centroid << std::endl;
+
+		arma::fmat openvr_centered(length, 3);
+		arma::fmat kinect_centered(length, 3);
+
+		for (int i = 0; i < length; i++) {
+			openvr_centered.at(i, 0) = data.at(i).first.data[0] - openvr_centroid.at(0);
+			openvr_centered.at(i, 1) = data.at(i).first.data[1] - openvr_centroid.at(1);
+			openvr_centered.at(i, 2) = data.at(i).first.data[2] - openvr_centroid.at(2);
+
+			kinect_centered.at(i, 0) = data.at(i).second.data[0] - kinect_centroid.at(0);
+			kinect_centered.at(i, 1) = data.at(i).second.data[1] - kinect_centroid.at(1);
+			kinect_centered.at(i, 2) = data.at(i).second.data[2] - kinect_centroid.at(2);
 		}
 		
-		std::vector<float> openvr_transposed;
-		
+		std::cout << "OpenVR centered:" << std::endl;
+		std::cout << openvr_centered << std::endl;
+
+		std::cout << "Kinect centered:" << std::endl;
+		std::cout << kinect_centered << std::endl;
+
+		arma::fmat openvr_transposed(3, length);
+		openvr_transposed = openvr_centered.t();
+
+		std::cout << "OpenVR transposed:" << std::endl;
+		std::cout << openvr_transposed << std::endl;
+
 		arma::fmat M;
+		M = openvr_transposed * kinect_centered;
+
 		arma::fmat U;
 		arma::fvec S;
-		arma::fmat V;
-		arma::svd(U, S, V, M);
+		arma::fmat Vt;
+		arma::svd(U, S, Vt, M);
 
-		arma::fmat test(3,3);
+		arma::fmat R = Vt.t() * U.t();
 
-		return Mat4();
+		// handle special reflection case
+		if (1 || arma::det(R) < 0) {
+			std::cout << "INFORMATION: reflection detected!" << std::endl;
+			std::cout << R << std::endl;
+			Vt.at(2, 0) *= -1;
+			Vt.at(2, 1) *= -1;
+			Vt.at(2, 2) *= -1;
+			R = Vt.t() * U.t();
+		}
+
+		std::cout << "R is:" << std::endl;
+		std::cout << R << std::endl;
+
+		arma::vec3 t = -R * openvr_centroid.t() + kinect_centroid.t();
+
+		std::cout << "t is:" << std::endl;
+		std::cout << t << std::endl;
+
+		Mat4 result;
+
+		return result;
 	}
 
 	std::vector<std::pair<Vec3, Vec3>> data;
