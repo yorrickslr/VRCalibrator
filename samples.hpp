@@ -124,6 +124,8 @@ struct Samples {
 	bool add(vr::HmdMatrix34_t const& openvr_pos, CameraSpacePoint const& kinect_pos) {
 		Vec3 openvr_vec = Vec3(openvr_pos);
 		Vec3 kinect_vec = Vec3(kinect_pos);
+		kinect_vec.data[0] *= -1;
+		kinect_vec.data[2] *= -1;
 		if (openvr_vec.containsZero() || kinect_vec.containsZero())
 			return 0;
 		if (length>0 && openvr_vec == data.back().first)
@@ -134,6 +136,11 @@ struct Samples {
 		data.push_back(temp);
 		length++;
 		return 1;
+	}
+	void add(Vec3 const& openvr_vec, Vec3 const& kinect_vec) {
+		std::pair<Vec3, Vec3> temp = std::pair<Vec3, Vec3>(openvr_vec, kinect_vec);
+		data.push_back(temp);
+		length++;
 	}
 	bool pop() {
 		if (length == 0)
@@ -201,10 +208,10 @@ struct Samples {
 		kinect_centroid[2] /= length;
 
 		std::cout << "OpenVR centroid:" << std::endl;
-		std::cout << openvr_centroid << std::endl;
+		std::cout << openvr_centroid.t() << std::endl;
 
 		std::cout << "Kinect centroid:" << std::endl;
-		std::cout << kinect_centroid << std::endl;
+		std::cout << kinect_centroid.t() << std::endl;
 
 		arma::fmat openvr_centered(length, 3);
 		arma::fmat kinect_centered(length, 3);
@@ -228,38 +235,54 @@ struct Samples {
 		arma::fmat openvr_transposed(3, length);
 		openvr_transposed = openvr_centered.t();
 
-		std::cout << "OpenVR transposed:" << std::endl;
-		std::cout << openvr_transposed << std::endl;
-
 		arma::fmat M;
 		M = openvr_transposed * kinect_centered;
+
+		std::cout << "M:" << std::endl;
+		std::cout << M << std::endl;
 
 		arma::fmat U;
 		arma::fvec S;
 		arma::fmat Vt;
 		arma::svd(U, S, Vt, M);
 
-		arma::fmat R = Vt.t() * U.t();
+		std::cout << "U:" << std::endl;
+		std::cout << U << std::endl;
+		std::cout << "S:" << std::endl;
+		std::cout << S << std::endl;
+		std::cout << "Vt:" << std::endl;
+		std::cout << Vt.t() << std::endl;
 
-		// handle special reflection case
-		if (1 || arma::det(R) < 0) {
-			std::cout << "INFORMATION: reflection detected!" << std::endl;
-			std::cout << R << std::endl;
-			Vt.at(2, 0) *= -1;
-			Vt.at(2, 1) *= -1;
-			Vt.at(2, 2) *= -1;
-			R = Vt.t() * U.t();
-		}
+		arma::fmat R = Vt * U.t();
 
-		std::cout << "R is:" << std::endl;
+		std::cout << "R:" << std::endl;
 		std::cout << R << std::endl;
 
-		arma::vec3 t = -R * openvr_centroid.t() + kinect_centroid.t();
+		// handle special reflection case
+		if (arma::det(R) < 0) {
+			std::cout << "INFORMATION: reflection detected!" << std::endl;
+			Vt.at(0, 2) *= -1;
+			Vt.at(1, 2) *= -1;
+			Vt.at(2, 2) *= -1;
+			std::cout << "Vt:" << std::endl;
+			std::cout << Vt.t() << std::endl;
+			R = Vt * U.t();
+			std::cout << "R:" << std::endl;
+			std::cout << R << std::endl;
+		}
 
-		std::cout << "t is:" << std::endl;
+		auto t = -R * openvr_centroid + kinect_centroid;
+
+		std::cout << "t:" << std::endl;
 		std::cout << t << std::endl;
 
 		Mat4 result;
+
+		result.set_translation(t);
+		result.set_rotation(R);
+
+		std::cout << "result:" << std::endl;
+		std::cout << result << std::endl;
 
 		return result;
 	}

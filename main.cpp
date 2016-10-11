@@ -139,53 +139,94 @@ exit:
 	std::cin.get();
 	
 	Mat4 calibration = samples.calibrate2();
-	/*
+
 	std::ofstream file;
 	file.open("calibration.txt");
 	file << calibration;
 	file.close();
+	
+	/*
+	Samples samples;
+	glm::vec3 openvr_vec, kinect_vec;
+
+	openvr_vec = glm::vec3(-0.52750, 0.18810, -0.79097);
+	kinect_vec = glm::vec3(0.42286, -0.22026, 2.27421);
+	samples.add(openvr_vec, kinect_vec);
+
+	openvr_vec = glm::vec3(-1.19792, 0.54479, -0.58027);
+	kinect_vec = glm::vec3(0.43105, 0.08797, 1.60655);
+	samples.add(openvr_vec, kinect_vec);
+
+	openvr_vec = glm::vec3(-0.31701, 0.73740, -0.19465);
+	kinect_vec = glm::vec3(-0.20007, 0.26531, 2.31348);
+	samples.add(openvr_vec, kinect_vec);
+
+	Mat4 calibration = samples.calibrate2();
 
 	Mat4 openvr;
 	Mat4 kinect;
+	Mat4 diff;
+	Mat4 temp;
+
+	/*
 	openvr.translate(samples.data[0].first.data);
 	kinect.translate(samples.data[0].second.data);
 
-	std::cout << openvr << std::endl;
-	std::cout << kinect << std::endl;
+	temp = kinect * calibration;
+	for (int i = 0; i < 4; i++) {
+		for (int k = 0; k < 4; k++) {
+			diff.data[i][k] = abs(openvr.data[i][k] - temp.data[i][k]);
+		}
+	}
 
-	kinect = kinect * calibration;
-	std::cout << std::endl;
-	std::cout << kinect << std::endl;
-
-	std::cout << std::endl;
-	std::cout << std::endl;
+	std::cout << "Difference 1:" << std::endl;
+	std::cout << diff << std::endl << std::endl;
 
 	openvr = Mat4();
 	kinect = Mat4();
+
 	openvr.translate(samples.data[1].first.data);
 	kinect.translate(samples.data[1].second.data);
 
-	std::cout << openvr << std::endl;
-	std::cout << kinect << std::endl;
+	temp = kinect * calibration;
+	for (int i = 0; i < 4; i++) {
+		for (int k = 0; k < 4; k++) {
+			diff.data[i][k] = abs(openvr.data[i][k] - temp.data[i][k]);
+		}
+	}
 
-	kinect = kinect * calibration;
-	std::cout << std::endl;
-	std::cout << kinect << std::endl;
-
-	std::cout << std::endl;
-	std::cout << std::endl;
+	std::cout << "Difference 2:" << std::endl;
+	std::cout << diff << std::endl << std::endl;
 
 	openvr = Mat4();
 	kinect = Mat4();
+
 	openvr.translate(samples.data[2].first.data);
 	kinect.translate(samples.data[2].second.data);
 
+	temp = kinect * calibration;
+	for (int i = 0; i < 4; i++) {
+		for (int k = 0; k < 4; k++) {
+			diff.data[i][k] = abs(openvr.data[i][k] - temp.data[i][k]);
+		}
+	}
+
+	std::cout << "Difference 3:" << std::endl;
+	std::cout << diff << std::endl << std::endl;
+	
+
+	openvr = Mat4();
+	kinect = Mat4();
+	openvr.translate(samples.data[0].first.data);
+	kinect.translate(samples.data[0].second.data);
 	std::cout << openvr << std::endl;
 	std::cout << kinect << std::endl;
-
-	kinect = kinect * calibration;
+	temp = kinect * calibration;
 	std::cout << std::endl;
-	std::cout << kinect << std::endl;
+	std::cout << temp << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
 	*/
+
 	return 0;
 }
