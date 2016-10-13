@@ -160,15 +160,16 @@ exit:
 	openvr_vec = glm::vec3(-0.31701, 0.73740, -0.19465);
 	kinect_vec = glm::vec3(-0.20007, 0.26531, 2.31348);
 	samples.add(openvr_vec, kinect_vec);
+	*/
 
-	Mat4 calibration = samples.calibrate2();
-
-	Mat4 openvr;
+	Mat4 openvr = Mat4();
 	Mat4 kinect;
 	Mat4 diff;
 	Mat4 temp;
 
-	/*
+	std::cout << "Empty diff:" << std::endl;
+	std::cout << diff << std::endl;
+
 	openvr.translate(samples.data[0].first.data);
 	kinect.translate(samples.data[0].second.data);
 
@@ -214,7 +215,7 @@ exit:
 	std::cout << "Difference 3:" << std::endl;
 	std::cout << diff << std::endl << std::endl;
 	
-
+	/*
 	openvr = Mat4();
 	kinect = Mat4();
 	openvr.translate(samples.data[0].first.data);

@@ -99,7 +99,7 @@ struct Mat4 {
 	void set_rotation(arma::fmat const& mat) {
 		for (int i = 0; i < 3; i++) {
 			for (int k = 0; k < 3; k++) {
-				data[k][i] = mat.at(i, k);
+				data[k][i] = mat.at(k, i);
 			}
 		}
 	}
@@ -124,8 +124,8 @@ struct Samples {
 	bool add(vr::HmdMatrix34_t const& openvr_pos, CameraSpacePoint const& kinect_pos) {
 		Vec3 openvr_vec = Vec3(openvr_pos);
 		Vec3 kinect_vec = Vec3(kinect_pos);
-		kinect_vec.data[0] *= -1;
-		kinect_vec.data[2] *= -1;
+		//kinect_vec.data[0] *= -1;
+		//kinect_vec.data[2] *= -1;
 		if (openvr_vec.containsZero() || kinect_vec.containsZero())
 			return 0;
 		if (length>0 && openvr_vec == data.back().first)
@@ -277,9 +277,13 @@ struct Samples {
 		std::cout << t << std::endl;
 
 		Mat4 result;
+		Mat4 transformation;
 
-		result.set_translation(t);
-		result.set_rotation(R);
+		result.set_translation(kinect_centroid); // if negative, double the translation???
+
+		//transformation.set_translation(t);
+		//transformation.set_rotation(R);
+		//result = result * transformation;
 
 		std::cout << "result:" << std::endl;
 		std::cout << result << std::endl;
