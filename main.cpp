@@ -144,24 +144,27 @@ exit:
 	file.open("calibration.txt");
 	file << calibration;
 	file.close();
-	
-	/*
+
+/*
 	Samples samples;
 	glm::vec3 openvr_vec, kinect_vec;
 
-	openvr_vec = glm::vec3(-0.52750, 0.18810, -0.79097);
-	kinect_vec = glm::vec3(0.42286, -0.22026, 2.27421);
+	Mat4 calibration;
+
+	openvr_vec = glm::vec3(0,0,0);
+	kinect_vec = glm::vec3(0,-1,-2);
 	samples.add(openvr_vec, kinect_vec);
 
-	openvr_vec = glm::vec3(-1.19792, 0.54479, -0.58027);
-	kinect_vec = glm::vec3(0.43105, 0.08797, 1.60655);
+	openvr_vec = glm::vec3(0,1,0);
+	kinect_vec = glm::vec3(0,0,-2);
 	samples.add(openvr_vec, kinect_vec);
 
-	openvr_vec = glm::vec3(-0.31701, 0.73740, -0.19465);
-	kinect_vec = glm::vec3(-0.20007, 0.26531, 2.31348);
+	openvr_vec = glm::vec3(0, 0, -1);
+	kinect_vec = glm::vec3(-1, -1, -2);
 	samples.add(openvr_vec, kinect_vec);
-	*/
 
+	calibration = samples.calibrate2();
+*/
 	Mat4 openvr = Mat4();
 	Mat4 kinect;
 	Mat4 diff;
@@ -214,6 +217,13 @@ exit:
 
 	std::cout << "Difference 3:" << std::endl;
 	std::cout << diff << std::endl << std::endl;
+
+	std::cout << "test" << std::endl;
+	Mat4 a, b;
+	a.data[3][0] = 42;
+	std::cout << a << std::endl;
+	std::cout << b << std::endl;
+	std::cout << a*b << std::endl;
 	
 	/*
 	openvr = Mat4();
