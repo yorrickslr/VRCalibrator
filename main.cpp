@@ -138,7 +138,7 @@ exit:
 	std::cout << "\nPress enter to calibrate..." << std::endl;
 	std::cin.get();
 	
-	Mat4 calibration = samples.calibrate2();
+	Mat4 calibration = samples.calibrate3();
 
 	std::ofstream file;
 	file.open("calibration.txt");
@@ -165,6 +165,8 @@ exit:
 
 	calibration = samples.calibrate2();
 */
+	
+/*
 	Mat4 openvr = Mat4();
 	Mat4 kinect;
 	Mat4 diff;
@@ -224,6 +226,8 @@ exit:
 	std::cout << a << std::endl;
 	std::cout << b << std::endl;
 	std::cout << a*b << std::endl;
+
+*/
 	
 	/*
 	openvr = Mat4();
