@@ -111,6 +111,7 @@ struct Mat4 {
 
 struct Samples {
 	bool add(vr::HmdMatrix34_t const& openvr_pos, CameraSpacePoint const& kinect_pos) {
+		return 0;
 		Vec3 openvr_vec = Vec3(openvr_pos);
 		Vec3 kinect_vec = Vec3(kinect_pos);
 		//kinect_vec.data[0] *= -1;
@@ -323,35 +324,38 @@ struct Samples {
 	}
 
 	arma::fmat44 calibrate3() {
-		arma::fvec3 openvr_centroid;
-		arma::fvec3 kinect_centroid;
+		std::cout << "length: " << length << std::endl;
+		std::cout << "data.size(): " << data.size() << std::endl;
+
+		arma::fvec openvr_centroid(3, arma::fill::zeros);
+		arma::fvec kinect_centroid(3, arma::fill::zeros);
 
 		for (auto i : data) {
-			openvr_centroid[0] += i.first.data[0];
-			openvr_centroid[1] += i.first.data[1];
-			openvr_centroid[2] += i.first.data[2];
-			kinect_centroid[0] += i.second.data[0];
-			kinect_centroid[1] += i.second.data[1];
-			kinect_centroid[2] += i.second.data[2];
+			openvr_centroid.at(0) += i.first.data.at(0);
+			openvr_centroid.at(1) += i.first.data.at(1);
+			openvr_centroid.at(2) += i.first.data.at(2);
+			kinect_centroid.at(0) += i.second.data.at(0);
+			kinect_centroid.at(1) += i.second.data.at(1);
+			kinect_centroid.at(2) += i.second.data.at(2);
 		}
-		openvr_centroid[0] /= length;
-		openvr_centroid[1] /= length;
-		openvr_centroid[2] /= length;
-		kinect_centroid[0] /= length;
-		kinect_centroid[1] /= length;
-		kinect_centroid[2] /= length;
+		openvr_centroid.at(0) /= length;
+		openvr_centroid.at(1) /= length;
+		openvr_centroid.at(2) /= length;
+		kinect_centroid.at(0) /= length;
+		kinect_centroid.at(1) /= length;
+		kinect_centroid.at(2) /= length;
 
 		arma::fmat openvr_centered(length, 3);
 		arma::fmat kinect_centered(length, 3);
 
 		for (int i = 0; i < length; i++) {
-			openvr_centered.at(i, 0) = data.at(i).first.data[0] - openvr_centroid.at(0);
-			openvr_centered.at(i, 1) = data.at(i).first.data[1] - openvr_centroid.at(1);
-			openvr_centered.at(i, 2) = data.at(i).first.data[2] - openvr_centroid.at(2);
+			openvr_centered.at(i, 0) = data.at(i).first.data.at(0) - openvr_centroid.at(0);
+			openvr_centered.at(i, 1) = data.at(i).first.data.at(1) - openvr_centroid.at(1);
+			openvr_centered.at(i, 2) = data.at(i).first.data.at(2) - openvr_centroid.at(2);
 
-			kinect_centered.at(i, 0) = data.at(i).second.data[0] - kinect_centroid.at(0);
-			kinect_centered.at(i, 1) = data.at(i).second.data[1] - kinect_centroid.at(1);
-			kinect_centered.at(i, 2) = data.at(i).second.data[2] - kinect_centroid.at(2);
+			kinect_centered.at(i, 0) = data.at(i).second.data.at(0) - kinect_centroid.at(0);
+			kinect_centered.at(i, 1) = data.at(i).second.data.at(1) - kinect_centroid.at(1);
+			kinect_centered.at(i, 2) = data.at(i).second.data.at(2) - kinect_centroid.at(2);
 		}
 
 		arma::fmat M;
@@ -383,24 +387,41 @@ struct Samples {
 			std::cout << R << std::endl;
 		}
 
-		/*
 		R = R.i();
 
-		std::cout << "R after inversion:" << std::endl;
-		std::cout << R << std::endl;
-		*/
+		std::cout << "OpenVR centroid:" << std::endl;
+		std::cout << openvr_centroid << std::endl;
 
-		arma::fvec4 temp;
-		temp.zeros();
-		temp.at(3) = 1;
+		std::cout << "Kinect centroid:" << std::endl;
+		std::cout << kinect_centroid << std::endl;
+
+		kinect_centroid = R * kinect_centroid;
+
+		std::cout << "rotated kinect centroid:" << std::endl;
+		std::cout << kinect_centroid << std::endl;
+
+		kinect_centroid.insert_rows(3, 1);
+		openvr_centroid.insert_rows(3, 1);
+
+		arma::fmat44 offset(arma::fill::eye);
+		offset.at(0, 3) = openvr_centroid.at(0) - kinect_centroid.at(0);
+		offset.at(1, 3) = openvr_centroid.at(1) - kinect_centroid.at(1);
+		offset.at(2, 3) = openvr_centroid.at(2) - kinect_centroid.at(2);
+		offset.at(3, 3) = 1;
+
+		std::cout << "offset:" << std::endl;
+		std::cout << offset << std::endl;
+
 		R.insert_rows(3, 1);
-		R.insert_cols(3, temp);
-		std::cout << R << std::endl;
+		R.insert_cols(3, 1);
+		R.at(3, 3) = 1;
 
 
-		arma::fmat44 result;
+		arma::fmat44 result = offset * R;
+		std::cout << "result:" << std::endl;
+		std::cout << result << std::endl;
 
-		return R;
+		return result;
 	}
 
 	std::vector<std::pair<Vec3, Vec3>> data;
