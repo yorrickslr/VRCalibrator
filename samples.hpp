@@ -111,7 +111,6 @@ struct Mat4 {
 
 struct Samples {
 	bool add(vr::HmdMatrix34_t const& openvr_pos, CameraSpacePoint const& kinect_pos) {
-		return 0;
 		Vec3 openvr_vec = Vec3(openvr_pos);
 		Vec3 kinect_vec = Vec3(kinect_pos);
 		//kinect_vec.data[0] *= -1;
