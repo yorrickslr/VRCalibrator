@@ -6,7 +6,7 @@ DIR="$( cd "$( dirname "$0" )" && pwd )"
 # assuming a local guacmole version is located properly
 LOCAL_GUACAMOLE="$DIR/../../../guacamole"
 #LOCAL_AVANGO="$DIR/../../src/avango"
-LOCAL_AVANGO="/home/xawi8035/Desktop/avango"
+LOCAL_AVANGO="/home/cicu7215/src/avango"
 
 # if not, this path will be used
 GUACAMOLE=/opt/guacamole/master
@@ -28,9 +28,9 @@ export LD_LIBRARY_PATH="$LOCAL_GUACAMOLE/lib":$GUACAMOLE/lib:$LD_LIBRARY_PATH
 # run daemon
 if [ -f "$LOCAL_AVANGO/examples/examples_common/daemon.py" ]
 then
-    python3 $DIR/daemon.py > /dev/null &
+    python3 $DIR/daemon.py > /dev/null&
 else
-    python3 $AVANGO/examples/examples_common/daemon.py > /dev/null &
+    python3 $AVANGO/examples/examples_common/daemon.py > /dev/null&
 fi
 
 # run program
