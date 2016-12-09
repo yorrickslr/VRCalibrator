@@ -8,12 +8,31 @@ from skeleton import HumanSkeleton
 
 import csv
 
-def start():
+# TODO
+# spheres at origins
 
-    # acquire calibration
+# 0, 0.9, 4.1: temp translation
+
+global calibration;
+
+def load_calibration():
+	try:
+	    with open('calibration.txt', 'r') as file:
+	        reader = csv.reader(file, delimiter=" ", skipinitialspace=True)
+	        csv_out = [[float(e) for e in r] for r in reader]
+	except:
+	    print("ERROR: cannot parse calibration file")
+
+	calibration = avango.gua.Mat4()
+
+	for i in range(4):
+	    for k in range(4):
+	        calibration.set_element(i,k,csv_out[i][k])
+
+def calibrate(obj):
     try:
         with open('calibration.txt', 'r') as file:
-            reader = csv.reader(file, delimiter=" ")
+            reader = csv.reader(file, delimiter=" ", skipinitialspace=True)
             csv_out = [[float(e) for e in r] for r in reader]
     except:
         print("ERROR: cannot parse calibration file")
@@ -24,78 +43,54 @@ def start():
         for k in range(4):
             calibration.set_element(i,k,csv_out[i][k])
 
+    obj.Transform.value = calibration
+
+def decalibrate(obj):
+    obj.Transform.value = avango.gua.make_identity_mat()
+
+side = 0
+top = 1
+def view(obj,mode):
+    if mode==1:
+        obj.Transform.value = avango.gua.make_rot_mat(90,1,0,0)
+        obj.Transform.value *= avango.gua.make_trans_mat(0,-10,0)
+        obj.Transform.value *= avango.gua.make_rot_mat(90,0,90,0)
+    else:
+        obj.Transform.value = avango.gua.make_trans_mat(0.0, 0.0, -10.0)
+
+def start():
+
     # setup scenegraph
     graph = avango.gua.nodes.SceneGraph(Name="scenegraph")
     loader = avango.gua.nodes.TriMeshLoader()
-    transform = avango.gua.nodes.TransformNode( \
-        Transform = calibration)
-    skeleton = HumanSkeleton(PARENT_NODE = transform)
+    skeleton = avango.gua.nodes.TransformNode()
+    human_skeleton = HumanSkeleton(Parent_Node = skeleton)
 
     hmd_service = avango.daemon.DeviceService()
-    hmd = avango.daemon.nodes.DeviceSensor( \
+    hmd_sensor = avango.daemon.nodes.DeviceSensor( \
         DeviceService = hmd_service)
-    hmd.Station.value = "hmd-1"
+    hmd_sensor.Station.value = "hmd-1"
 
-    monkey = loader.create_geometry_from_file(
-        "monkey", "data/objects/monkey.obj", \
-        avango.gua.LoaderFlags.NORMALIZE_SCALE)
-    monkey.Material.value.set_uniform("Color",
-        avango.gua.Vec4(1.0, 0.75, 0.75, 1.0))
-    monkey.Material.value.set_uniform("Roughness", 0.3)
-    monkey.Material.value.set_uniform("Metalness", 1.0)
+    controller = loader.create_geometry_from_file(
+        "controller", "data/objects/vive_controller.obj", \
+        avango.gua.LoaderFlags.LOAD_MATERIALS)
+    # controller.Material.value.set_uniform("Color",
+    #     avango.gua.Vec4(1.0, 0.75, 0.75, 1.0))
+    controller.Material.value.set_uniform("Roughness", 0.8)
+    controller.Material.value.set_uniform("Metalness", 0.1)
+    # controller.Transform.value *= avango.gua.make_scale_mat(0.2)
 
-    hmd_transform = avango.gua.nodes.TransformNode( \
-        Children = [monkey])
+    hmd = avango.gua.nodes.TransformNode( \
+        Children = [controller], Name="hmd")
 
-    hmd_transform.Transform.connect_from(hmd.Matrix)
+    hmd.Transform.connect_from(hmd_sensor.Matrix)
 
     main = avango.gua.nodes.TransformNode( \
-        Children= [hmd_transform, transform], \
-        Transform = avango.gua.make_trans_mat(0.0, 0.0, -10.0)
+        Children= [hmd, skeleton], \
+        Transform = avango.gua.make_trans_mat(0.0, 0.0, -10.0),
+        Name="main"
         )
 
-    '''
-    # device sensor listening to the daemon values
-    device_service = avango.daemon.DeviceService()
-
-    device = avango.daemon.nodes.DeviceSensor(
-        DeviceService=device_service)
-
-    device2 = avango.daemon.nodes.DeviceSensor(
-        DeviceService=device_service)
-
-    # station name determines which device is used
-    device.Station.value = "kinect-joint-0"  # 0 for first xbox controller
-    device2.Station.value = "kinect-joint-1"
-
-    # setup scenegraph
-    graph = avango.gua.nodes.SceneGraph(Name="scenegraph")
-    loader = avango.gua.nodes.TriMeshLoader()
-
-    monkey = loader.create_geometry_from_file(
-        "monkey", "data/objects/monkey.obj",
-        avango.gua.LoaderFlags.NORMALIZE_SCALE)
-
-    monkey.Material.value.set_uniform("Color",
-                                      avango.gua.Vec4(1.0, 0.766, 0.336, 1.0))
-    monkey.Material.value.set_uniform("Roughness", 0.3)
-    monkey.Material.value.set_uniform("Metalness", 1.0)
-
-    transform = avango.gua.nodes.TransformNode(Children=[monkey])
-    transform.Transform.connect_from(device.Matrix)
-
-    monkey2 = loader.create_geometry_from_file(
-        "monkey2", "data/objects/monkey.obj",
-        avango.gua.LoaderFlags.NORMALIZE_SCALE)
-
-    monkey2.Material.value.set_uniform("Color",
-                                      avango.gua.Vec4(1.0, 0.766, 0.336, 1.0))
-    monkey2.Material.value.set_uniform("Roughness", 0.3)
-    monkey2.Material.value.set_uniform("Metalness", 1.0)
-
-    transform2 = avango.gua.nodes.TransformNode(Children=[monkey2])
-    transform2.Transform.connect_from(device2.Matrix)
-    '''
     light = avango.gua.nodes.LightNode(
         Type=avango.gua.LightType.POINT,
         Name="light",
@@ -105,7 +100,8 @@ def start():
                    avango.gua.make_scale_mat(30, 30, 30)))
     graph.Root.value.Children.value.append(light)
 
-    size = avango.gua.Vec2ui(1024, 768)
+    #size = avango.gua.Vec2ui(1024, 768)
+    size = avango.gua.Vec2ui(5461, 4096)
 
     window = avango.gua.nodes.GlfwWindow(Size=size, LeftResolution=size)
 
@@ -126,7 +122,7 @@ def start():
     res_pass.EnvironmentLightingColor.value = avango.gua.Color(0.1, 0.1, 0.1)
     res_pass.ToneMappingMode.value = avango.gua.ToneMappingMode.UNCHARTED
     res_pass.Exposure.value = 1.0
-    res_pass.BackgroundColor.value = avango.gua.Color(0.45, 0.5, 0.6)
+    res_pass.BackgroundColor.value = avango.gua.Color(0.4, 0.4, 0.4)
 
     anti_aliasing = avango.gua.nodes.SSAAPassDescription()
 
@@ -143,6 +139,7 @@ def start():
                                          Width=2,
                                          Height=1.5,
                                          Children=[cam])
+
     graph.Root.value.Children.value.append(screen)
 
     graph.Root.value.Children.value.append(main)
@@ -157,6 +154,14 @@ def start():
 
     viewer.run()
 
+def tree(obj):
+    stack = [(obj, 0)]
+    while stack:
+        node, level = stack.pop()
+        print("│   " * level + "├── {0} <{1}>".format(
+            node.Name.value, node.__class__.__name__))
+        stack.extend(
+            [(child, level + 1) for child in reversed(node.Children.value)])
 
 if __name__ == '__main__':
     start()
