@@ -138,7 +138,7 @@ exit:
 	std::cout << "\nPress enter to calibrate..." << std::endl;
 	std::cin.get();
 	
-	arma::fmat44 calibration = samples.calibrate3();
+	arma::fmat44 calibration = samples.calibrate();
 
 	std::ofstream file;
 	file.open("calibration.txt");
